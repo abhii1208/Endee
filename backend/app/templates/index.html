@@ -139,12 +139,37 @@
         });
 
         if (!resp.ok) {
-          alert("Search failed. Check backend logs for details.");
+          let msg = "Search failed. The vector database may be unavailable.";
+          try {
+            const err = await resp.json();
+            if (err.detail) msg = typeof err.detail === "string" ? err.detail : err.detail.message || msg;
+          } catch (_) {}
+          showSearchError(msg);
           return;
         }
 
         const data = await resp.json();
+        clearSearchError();
         renderResults(data);
+      }
+
+      function showSearchError(message) {
+        const resultsEl = document.getElementById("results");
+        resultsEl.classList.remove("hidden");
+        let errEl = document.getElementById("search-error");
+        if (!errEl) {
+          errEl = document.createElement("div");
+          errEl.id = "search-error";
+          errEl.className = "panel search-error";
+          resultsEl.insertBefore(errEl, resultsEl.firstChild);
+        }
+        errEl.textContent = message;
+        errEl.classList.remove("hidden");
+      }
+
+      function clearSearchError() {
+        const errEl = document.getElementById("search-error");
+        if (errEl) errEl.classList.add("hidden");
       }
 
       function renderList(listEl, items) {

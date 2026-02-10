@@ -14,6 +14,12 @@ class SearchFilters(BaseModel):
     types: Optional[List[Literal["ticket", "faq", "runbook"]]] = Field(
         default=None, description="Restrict result types"
     )
+    priority_min: Optional[int] = Field(
+        default=None, ge=0, le=999, description="Min priority (Endee $range filter)"
+    )
+    priority_max: Optional[int] = Field(
+        default=None, ge=0, le=999, description="Max priority (Endee $range filter)"
+    )
 
 
 class SearchRequest(BaseModel):
@@ -40,6 +46,7 @@ class SearchResultItemSchema(BaseModel):
     severity: Optional[str] = None
     score: float
     url: Optional[str] = None
+    resolved: Optional[bool] = None
 
 
 class SearchResponse(BaseModel):
@@ -64,4 +71,6 @@ class IngestItemRequest(BaseModel):
     severity: Optional[str] = None
     tags: Optional[List[str]] = None
     url: Optional[str] = None
+    resolved: Optional[bool] = None
+    priority: Optional[int] = Field(None, ge=0, le=999)
 

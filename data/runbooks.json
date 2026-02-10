@@ -13,7 +13,8 @@
     "product": "billing-api",
     "severity": "P1",
     "tags": ["incident", "504", "billing"],
-    "url": "https://runbooks.example.com/incidents/payments-504"
+    "url": "https://runbooks.example.com/incidents/payments-504",
+    "priority": 10
   },
   {
     "id": "RB-AUTH-LOGIN",
@@ -29,7 +30,8 @@
     "product": "auth-service",
     "severity": "P1",
     "tags": ["auth", "login"],
-    "url": "https://runbooks.example.com/auth/login-after-reset"
+    "url": "https://runbooks.example.com/auth/login-after-reset",
+    "priority": 10
   }
 ]
 

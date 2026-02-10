@@ -5,6 +5,7 @@ from loguru import logger
 
 from backend.app.config import get_settings
 from backend.app.models.domain import SupportItem
+from backend.app.services.embeddings import get_embedding_model
 
 
 class EndeeClientWrapper:
@@ -62,7 +63,12 @@ class EndeeClientWrapper:
         via configuration.
         """
 
-        return 384
+        model = get_embedding_model()
+        sample_vector = model.encode("dimension-probe", convert_to_numpy=True)
+        return int(sample_vector.shape[0])
+
+    def describe_index(self) -> dict:
+        return self._index.describe()
 
     def upsert_support_items(self, items: List[SupportItem], vectors: List[List[float]]):
         """

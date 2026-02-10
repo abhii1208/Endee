@@ -10,12 +10,18 @@ router = APIRouter(tags=["health"])
 async def health() -> dict:
     settings = get_settings()
     client = get_endee_client()
-    description = client._index.describe()
+    try:
+        description = client.describe_index()
+        endee_status = "ok"
+    except Exception:
+        description = {}
+        endee_status = "unavailable"
 
     return {
         "app": settings.app_name,
         "environment": settings.environment,
         "endee_index": settings.endee_index_name,
+        "endee_status": endee_status,
         "endee_index_stats": description,
     }
 

@@ -1,0 +1,26 @@
+[
+  {
+    "query": "504 errors on payments API for EU merchants",
+    "expected_ids": {
+      "tickets": ["TCK-1001"],
+      "faqs": ["FAQ-001"],
+      "runbooks": ["RB-INC-504"]
+    }
+  },
+  {
+    "query": "Users cannot log in after password reset",
+    "expected_ids": {
+      "tickets": ["TCK-1003"],
+      "faqs": ["FAQ-003"],
+      "runbooks": ["RB-AUTH-LOGIN"]
+    }
+  },
+  {
+    "query": "rate limiting 429 on profile API",
+    "expected_ids": {
+      "tickets": ["TCK-1005"],
+      "faqs": ["FAQ-002"],
+      "runbooks": []
+    }
+  }
+]

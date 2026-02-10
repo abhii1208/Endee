@@ -1,5 +1,10 @@
-from fastapi import APIRouter
+import time
 
+from fastapi import APIRouter, HTTPException
+
+from loguru import logger
+
+from backend.app.config import get_settings
 from backend.app.models.schemas import SearchRequest, SearchResponse, SearchResultItemSchema
 from backend.app.services.answer import generate_answer, is_llm_enabled
 from backend.app.services.search import search_support_knowledge
@@ -9,11 +14,29 @@ router = APIRouter(prefix="/search", tags=["search"])
 
 @router.post("", response_model=SearchResponse)
 async def search_support(request: SearchRequest) -> SearchResponse:
-    """
-    Main semantic search endpoint.
-    """
-
-    results = search_support_knowledge(request)
+    settings = get_settings()
+    top_k = min(request.top_k, settings.max_top_k)
+    request_capped = request.model_copy(update={"top_k": top_k})
+    filters_repr = (
+        request.filters.model_dump() if request.filters else None
+    )
+    start = time.perf_counter()
+    try:
+        results = search_support_knowledge(request_capped)
+    except Exception as exc:
+        logger.exception("Search failed: %s", exc)
+        raise HTTPException(
+            status_code=503,
+            detail="Search failed. The vector database may be unavailable. Check backend logs.",
+        ) from exc
+    elapsed_ms = (time.perf_counter() - start) * 1000
+    logger.info(
+        "search query_len=%s top_k=%s filters=%s latency_ms=%.1f",
+        len(request.query),
+        top_k,
+        filters_repr,
+        elapsed_ms,
+    )
 
     tickets = []
     faqs = []
@@ -29,6 +52,7 @@ async def search_support(request: SearchRequest) -> SearchResponse:
             severity=item.severity,
             score=item.score,
             url=item.url,
+            resolved=getattr(item, "resolved", None),
         )
         if item.type.value == "ticket":
             tickets.append(schema)
@@ -43,9 +67,9 @@ async def search_support(request: SearchRequest) -> SearchResponse:
 
     return SearchResponse(
         query=request.query,
-        tickets=tickets[: request.top_k],
-        faqs=faqs[: request.top_k],
-        runbooks=runbooks[: request.top_k],
+        tickets=tickets[:top_k],
+        faqs=faqs[:top_k],
+        runbooks=runbooks[:top_k],
         llm_answer=llm_answer,
     )
 

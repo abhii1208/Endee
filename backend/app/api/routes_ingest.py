@@ -1,7 +1,8 @@
 from typing import List
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
+from backend.app.config import get_settings
 from backend.app.models.domain import SupportItem, SupportItemType
 from backend.app.models.schemas import IngestItemRequest
 from backend.app.services.embeddings import embed_texts
@@ -12,12 +13,12 @@ router = APIRouter(prefix="/ingest", tags=["ingest"])
 
 @router.post("", status_code=201)
 async def ingest_items(items: List[IngestItemRequest]) -> dict:
-    """
-    Ingest a batch of support items via the API.
-
-    This is primarily for demos and small-scale updates; bulk ingestion
-    should be done via the offline ingestion script.
-    """
+    settings = get_settings()
+    if len(items) > settings.max_ingest_batch_size:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Batch size exceeds maximum of {settings.max_ingest_batch_size}. Split into smaller batches.",
+        )
 
     domain_items: List[SupportItem] = []
     texts: List[str] = []
@@ -32,6 +33,8 @@ async def ingest_items(items: List[IngestItemRequest]) -> dict:
             severity=payload.severity,
             tags=payload.tags,
             url=payload.url,
+            resolved=payload.resolved,
+            priority=payload.priority,
         )
         domain_items.append(item)
         texts.append(item.to_text())

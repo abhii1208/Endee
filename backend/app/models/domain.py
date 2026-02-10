@@ -24,6 +24,8 @@ class SupportItem:
     severity: Optional[str] = None
     tags: Optional[List[str]] = None
     url: Optional[str] = None
+    resolved: Optional[bool] = None
+    priority: Optional[int] = None
 
     def to_text(self) -> str:
         """
@@ -34,24 +36,20 @@ class SupportItem:
         return "\n".join([line for line in lines if line])
 
     def meta(self) -> Dict[str, Any]:
-        """
-        Metadata stored in Endee; used for display and optional prompting.
-        """
-
-        return {
+        out: Dict[str, Any] = {
             "type": self.type.value,
             "title": self.title,
             "product": self.product,
             "severity": self.severity,
             "tags": self.tags or [],
             "url": self.url,
+            "snippet": (self.body or "").strip()[:200],
         }
+        if self.resolved is not None:
+            out["resolved"] = self.resolved
+        return out
 
     def filter(self) -> Dict[str, Any]:
-        """
-        Filter fields used in Endee queries.
-        """
-
         filt: Dict[str, Any] = {}
         if self.product:
             filt["product"] = self.product
@@ -59,15 +57,13 @@ class SupportItem:
             filt["severity"] = self.severity
         if self.type:
             filt["type"] = self.type.value
+        if self.priority is not None and 0 <= self.priority <= 999:
+            filt["priority"] = self.priority
         return filt
 
 
 @dataclass
 class SearchResultItem:
-    """
-    Normalised search result returned to the API layer.
-    """
-
     id: str
     type: SupportItemType
     title: str
@@ -76,4 +72,5 @@ class SearchResultItem:
     severity: Optional[str]
     score: float
     url: Optional[str] = None
+    resolved: Optional[bool] = None
 

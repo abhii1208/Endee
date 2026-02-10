@@ -26,6 +26,10 @@ def _build_filter_clauses(request: SearchRequest) -> List[Dict[str, Any]]:
         filters.append({"severity": {"$eq": f.severity}})
     if f.types:
         filters.append({"type": {"$in": f.types}})
+    if getattr(f, "priority_min", None) is not None and getattr(f, "priority_max", None) is not None:
+        lo, hi = f.priority_min, f.priority_max
+        if 0 <= lo <= 999 and 0 <= hi <= 999 and lo <= hi:
+            filters.append({"priority": {"$range": [lo, hi]}})
 
     return filters
 
@@ -65,6 +69,7 @@ def search_support_knowledge(request: SearchRequest) -> List[SearchResultItem]:
                 severity=meta.get("severity"),
                 score=float(item.get("similarity", 0.0)),
                 url=meta.get("url"),
+                resolved=meta.get("resolved"),
             )
         )
 

@@ -2,6 +2,79 @@
 
 Semantic support search and recommendations for tickets, FAQs, and runbooks, powered by **Endee** as the vector database.
 
+This project uses [Endee](https://github.com/endee-io/endee) as the vector database. The submission is built against a fork of Endee: **[abhii1208/endeefork](https://github.com/abhii1208/endeefork)**. You can run the Endee server from that fork (build from source or use the official Docker image as in Quick Start below).
+
+---
+
+### Quick Start (for evaluators)
+
+From a machine with Python, Docker, and Git installed:
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/abhii1208/Endee.git
+cd Endee
+```
+
+2. Start Endee:
+
+```bash
+docker compose up -d
+```
+
+3. Set up Python environment and install dependencies:
+
+```bash
+python -m venv .venv
+```
+
+On Windows (PowerShell):
+
+```bash
+.venv\Scripts\Activate.ps1
+```
+
+On macOS / Linux (bash or zsh):
+
+```bash
+source .venv/bin/activate
+```
+
+Then install dependencies:
+
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+4. Ingest sample data into Endee:
+
+```bash
+python -m scripts.ingest_sample_data
+```
+
+5. Run the backend and open the UI:
+
+```bash
+scripts\run_server.bat
+```
+
+Then visit `http://localhost:8000` in a browser.
+
+---
+
+### LLM Answer Generation (optional)
+
+By default the application runs as a pure semantic search and recommendation system.
+To enable suggested replies:
+
+1. Ensure `openai` is installed (it is included in `requirements.txt`).
+2. Set `LLM_API_KEY` in your `.env` file to a valid OpenAI-compatible API key.
+3. Leave `generate_answer` enabled in the UI or `/search` payload.
+
+If `LLM_API_KEY` is not set or the provider is unreachable, the system will fall back to search-only mode.
+
 ---
 
 ### Problem Statement
@@ -145,11 +218,11 @@ docker compose up -d
 
 This starts Endee on `http://localhost:8080` with data persisted in a Docker volume.
 
-Option B – Fork Endee’s repository and run it as per official docs:
+Option B – Run Endee from the candidate's fork or build from source:
 
-- Fork `https://github.com/endee-io/endee` to your GitHub.
-- Follow the [Endee Quick Start](https://docs.endee.io/quick-start) to build and run the server.
-- Ensure it is reachable at `http://localhost:8080` or update `ENDEE_BASE_URL` accordingly.
+- **Fork used for this submission**: [abhii1208/endeefork](https://github.com/abhii1208/endeefork) (forked from [endee-io/endee](https://github.com/endee-io/endee)).
+- Clone the fork, then follow the [Endee Quick Start](https://docs.endee.io/quick-start) to build and run the server (e.g. `install.sh`, `run.sh`, or Docker).
+- Ensure the server is reachable at `http://localhost:8080` or set `ENDEE_BASE_URL` in `.env` accordingly.
 
 #### 3. Create and Activate Virtual Environment
 
@@ -298,6 +371,22 @@ Returns basic app and Endee index info.
 
 ---
 
+### Testing
+
+With the virtual environment active and dependencies installed:
+
+```bash
+pytest backend/tests -q
+```
+
+Optional: run retrieval evaluation (app must be running and data ingested):
+
+```bash
+python -m scripts.evaluate_retrieval --base-url http://localhost:8000
+```
+
+---
+
 ### How Endee Is Used (Central Role)
 
 - A single Endee index `support_knowledge` stores all support items as vectors:
@@ -307,6 +396,25 @@ Returns basic app and Endee index info.
 - The backend **never** performs its own similarity search – it always sends query vectors to Endee.
 - Endee’s `create_index`, `upsert`, `query`, and `describe` APIs are used for index lifecycle and retrieval.
 - Without Endee running, the search endpoints will not function; it is not an optional plug-in.
+- Optional **priority** filter uses Endee’s `$range` operator (0–999) for numeric filtering.
+
+---
+
+### Production Considerations
+
+For production deployments, consider:
+
+- **Authentication and authorization**: Add API keys or OAuth for `/search` and `/ingest`; avoid exposing them publicly.
+- **TLS**: Run the app behind a reverse proxy (e.g. nginx, Caddy) with HTTPS; do not expose the backend directly on the internet.
+- **Rate limiting**: Apply per-client rate limits on `/search` and `/ingest` to prevent abuse and DoS.
+- **Error contracts**: The API returns structured error bodies (e.g. `detail`) and 503 when the vector database is unavailable; extend with correlation IDs and logging for debugging.
+- **Monitoring**: Use the existing request logging (query length, top_k, filters, latency) and `/health`; add metrics export (e.g. Prometheus) and alerting on failure rates and latency.
+
+---
+
+### Screenshot
+
+After running the app, capture a screenshot of the search UI at `http://localhost:8000` and add it to the repo (e.g. `docs/screenshot.png`) to help evaluators see the interface at a glance.
 
 ---
 

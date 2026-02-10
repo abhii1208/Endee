@@ -19,6 +19,17 @@ def load_tickets(path: Path) -> List[SupportItem]:
     with path.open(encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
+            resolved = None
+            if row.get("resolved", "").strip().lower() in ("true", "1", "yes"):
+                resolved = True
+            elif row.get("resolved", "").strip().lower() in ("false", "0", "no"):
+                resolved = False
+            try:
+                priority = int(row["priority"]) if row.get("priority") else None
+            except (ValueError, KeyError):
+                priority = None
+            if priority is not None and (priority < 0 or priority > 999):
+                priority = None
             items.append(
                 SupportItem(
                     id=row["id"],
@@ -29,6 +40,8 @@ def load_tickets(path: Path) -> List[SupportItem]:
                     severity=row.get("severity") or None,
                     tags=[t.strip() for t in (row.get("tags") or "").split(",") if t.strip()],
                     url=row.get("url") or None,
+                    resolved=resolved,
+                    priority=priority,
                 )
             )
     return items
@@ -39,6 +52,10 @@ def load_faqs(path: Path) -> List[SupportItem]:
     with path.open(encoding="utf-8") as f:
         data = json.load(f)
     for entry in data:
+        p = entry.get("priority")
+        priority = int(p) if p is not None else None
+        if priority is not None and (priority < 0 or priority > 999):
+            priority = None
         items.append(
             SupportItem(
                 id=entry["id"],
@@ -49,6 +66,7 @@ def load_faqs(path: Path) -> List[SupportItem]:
                 severity=None,
                 tags=entry.get("tags") or [],
                 url=entry.get("url"),
+                priority=priority,
             )
         )
     return items
@@ -60,6 +78,10 @@ def load_runbooks(path: Path) -> List[SupportItem]:
         data = json.load(f)
     for entry in data:
         steps = "\n".join(entry.get("steps", []))
+        p = entry.get("priority")
+        priority = int(p) if p is not None else None
+        if priority is not None and (priority < 0 or priority > 999):
+            priority = None
         items.append(
             SupportItem(
                 id=entry["id"],
@@ -70,6 +92,7 @@ def load_runbooks(path: Path) -> List[SupportItem]:
                 severity=entry.get("severity"),
                 tags=entry.get("tags") or [],
                 url=entry.get("url"),
+                priority=priority,
             )
         )
     return items

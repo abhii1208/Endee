@@ -41,6 +41,11 @@ class Settings(BaseSettings):
         default=None,
         description="API key for the configured LLM provider. If unset, LLM is disabled.",
     )
+    llm_timeout_seconds: int = Field(30, description="Timeout for LLM API calls.")
+    llm_max_retries: int = Field(2, description="Max retries for LLM API calls on failure.")
+
+    max_top_k: int = Field(50, description="Server-side cap on search top_k.")
+    max_ingest_batch_size: int = Field(100, description="Max number of items per /ingest request.")
 
     class Config:
         env_file = ".env"
