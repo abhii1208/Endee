@@ -16,10 +16,11 @@ router = APIRouter(prefix="/search", tags=["search"])
 async def search_support(request: SearchRequest) -> SearchResponse:
     settings = get_settings()
     top_k = min(request.top_k, settings.max_top_k)
-    request_capped = request.model_copy(update={"top_k": top_k})
-    filters_repr = (
-        request.filters.model_dump() if request.filters else None
-    )
+    copy_fn = getattr(request, "model_copy", request.copy)
+    request_capped = copy_fn(update={"top_k": top_k})
+    filters_repr = None
+    if request.filters:
+        filters_repr = getattr(request.filters, "model_dump", request.filters.dict)()
     start = time.perf_counter()
     try:
         results = search_support_knowledge(request_capped)
