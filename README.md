@@ -323,29 +323,3 @@ To push this into a true top-tier project:
 
 ---
 
-### Resume & Interview Value
-
-You can confidently present this project as:
-
-- A **production-style semantic search system** built around a modern vector database \(Endee\).
-- Demonstrating skills in:
-  - End-to-end system design \(data ingestion → embeddings → vector DB → API → UI\).
-  - Working with vector search and retrieval \(filters, metadata, similarity configuration\).
-  - Python backend engineering with FastAPI and typed, modular code.
-  - Optional RAG integration with LLMs while keeping a clean separation of concerns.
-
-**Typical questions you can answer:**
-
-- Why vector search instead of keyword search for support tickets?
-- How do filters in Endee affect performance and result quality?
-- How would you scale this to millions of tickets and runbooks?
-- How would you handle updates and deletions of support content?
-- How would you evaluate whether the retrieval quality is good enough for production?
-
-When explaining it:
-
-- Start from the **business problem** \(slow, inconsistent support search\).
-- Show the **architecture diagram** and emphasise that Endee is the core retrieval engine.
-- Walk through a single **end-to-end flow**: new incident → query embedding → Endee search → grouped results → optional LLM answer.
-- Highlight **engineering choices**: configuration, separation of services, and testability.
-
