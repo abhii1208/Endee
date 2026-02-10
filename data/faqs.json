@@ -1,0 +1,27 @@
+[
+  {
+    "id": "FAQ-001",
+    "question": "Why am I seeing 504 Gateway Timeout errors on the payments API?",
+    "answer": "504 errors usually indicate that the upstream service did not respond within the configured timeout. Common causes include database saturation, dependency timeouts, or regional outages. Check the payments service dashboard, database connection metrics, and any recent deploys for the billing-api service.",
+    "product": "billing-api",
+    "tags": ["payments", "504", "timeouts"],
+    "url": "https://support.example.com/faqs/504-payments"
+  },
+  {
+    "id": "FAQ-002",
+    "question": "How does rate limiting work for profile API requests?",
+    "answer": "The profile-api uses a token bucket rate limiter per user and per device. If a client exceeds the allowed request rate, the API returns 429 Too Many Requests with a Retry-After header. Clients should implement exponential backoff and respect the Retry-After value.",
+    "product": "profile-api",
+    "tags": ["rate-limit", "429"],
+    "url": "https://support.example.com/faqs/profile-rate-limits"
+  },
+  {
+    "id": "FAQ-003",
+    "question": "Users cannot log in after password reset. What should I check?",
+    "answer": "Verify that the password reset token is not reused and that sessions issued before the reset are invalidated. Check auth-service logs for token validation errors and ensure that the cookie domain and secure flags are correctly configured for the environment.",
+    "product": "auth-service",
+    "tags": ["auth", "login"],
+    "url": "https://support.example.com/faqs/password-reset-login"
+  }
+]
+

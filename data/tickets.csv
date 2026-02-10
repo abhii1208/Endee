@@ -1,0 +1,7 @@
+id,title,description,product,severity,tags,url
+TCK-1001,Intermittent 504s on payments API,"Merchants report intermittent 504 Gateway Timeout errors when calling /v1/payments for EU customers. Incidents spike during peak traffic windows.",billing-api,P1,"payments,eu,timeout","https://support.example.com/tickets/TCK-1001"
+TCK-1002,Webhook delivery delays,"Webhook deliveries for order.created events are delayed by up to 10 minutes. Affected region appears to be US-West.",webhooks,P2,"webhook,latency,orders","https://support.example.com/tickets/TCK-1002"
+TCK-1003,Login failures after password reset,"A subset of users cannot log in after resetting their password. They see 'invalid session' errors on /auth/login.",auth-service,P1,"auth,login,session","https://support.example.com/tickets/TCK-1003"
+TCK-1004,High error rate for refunds API,"Refunds API /v1/refunds returns 400 for valid refund requests when amount is above 10,000.",billing-api,P2,"refunds,validation","https://support.example.com/tickets/TCK-1004"
+TCK-1005,Spike in 429 rate limiting,"Mobile apps are hitting 429 Too Many Requests on /v1/profile for Android users only.",profile-api,P3,"rate-limit,android","https://support.example.com/tickets/TCK-1005"
+

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{{ app_name }}</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <h1>{{ app_name }}</h1>
+        <p class="subtitle">
+          Semantic support search powered by Endee (env: {{ environment }})
+        </p>
+      </header>
+
+      <main>
+        <section class="search-section">
+          <form id="search-form">
+            <label for="query">Describe the issue</label>
+            <textarea
+              id="query"
+              name="query"
+              rows="4"
+              placeholder="Example: API timeouts when calling /v1/payments for EU customers..."
+            ></textarea>
+
+            <div class="filters">
+              <div>
+                <label for="product">Product</label>
+                <input
+                  type="text"
+                  id="product"
+                  name="product"
+                  placeholder="e.g. billing-api"
+                />
+              </div>
+              <div>
+                <label for="severity">Severity</label>
+                <input
+                  type="text"
+                  id="severity"
+                  name="severity"
+                  placeholder="e.g. P1"
+                />
+              </div>
+              <div>
+                <label for="types">Types (comma-separated)</label>
+                <input
+                  type="text"
+                  id="types"
+                  name="types"
+                  placeholder="ticket,faq,runbook"
+                />
+              </div>
+            </div>
+
+            <div class="controls">
+              <button type="submit">Search</button>
+              <label class="inline">
+                <input
+                  type="checkbox"
+                  id="generate_answer"
+                  name="generate_answer"
+                  checked
+                />
+                Generate suggested reply (if LLM configured)
+              </label>
+            </div>
+          </form>
+        </section>
+
+        <section id="results" class="results hidden">
+          <div id="llm-answer" class="panel hidden">
+            <h2>Suggested Reply</h2>
+            <pre id="llm-answer-text"></pre>
+          </div>
+
+          <div class="results-columns">
+            <div class="panel">
+              <h2>Similar Tickets</h2>
+              <ul id="tickets-list"></ul>
+            </div>
+            <div class="panel">
+              <h2>Relevant FAQs</h2>
+              <ul id="faqs-list"></ul>
+            </div>
+            <div class="panel">
+              <h2>Runbooks &amp; Procedures</h2>
+              <ul id="runbooks-list"></ul>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <p>
+          Built for the Endee vector database evaluation – support copilot demo.
+        </p>
+      </footer>
+    </div>
+
+    <script>
+      async function performSearch(event) {
+        event.preventDefault();
+
+        const query = document.getElementById("query").value.trim();
+        if (!query) return;
+
+        const product = document.getElementById("product").value.trim();
+        const severity = document.getElementById("severity").value.trim();
+        const typesStr = document.getElementById("types").value.trim();
+        const generateAnswer =
+          document.getElementById("generate_answer").checked;
+
+        const filters = {};
+        if (product) filters.product = product;
+        if (severity) filters.severity = severity;
+        if (typesStr) {
+          filters.types = typesStr
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean);
+        }
+
+        const payload = {
+          query,
+          top_k: 5,
+          filters: Object.keys(filters).length ? filters : null,
+          generate_answer: generateAnswer,
+        };
+
+        const resp = await fetch("/search", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!resp.ok) {
+          alert("Search failed. Check backend logs for details.");
+          return;
+        }
+
+        const data = await resp.json();
+        renderResults(data);
+      }
+
+      function renderList(listEl, items) {
+        listEl.innerHTML = "";
+        if (!items || !items.length) {
+          const li = document.createElement("li");
+          li.textContent = "No results.";
+          listEl.appendChild(li);
+          return;
+        }
+        items.forEach((item) => {
+          const li = document.createElement("li");
+          const title = document.createElement("strong");
+          title.textContent = item.title;
+
+          const meta = document.createElement("div");
+          meta.className = "meta";
+          meta.textContent = `Score: ${item.score.toFixed(
+            3
+          )} | Product: ${item.product || "-"} | Severity: ${
+            item.severity || "-"
+          }`;
+
+          const snippet = document.createElement("p");
+          snippet.textContent = item.snippet;
+
+          li.appendChild(title);
+          li.appendChild(meta);
+          li.appendChild(snippet);
+
+          if (item.url) {
+            const link = document.createElement("a");
+            link.href = item.url;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.textContent = "Open source";
+            li.appendChild(link);
+          }
+
+          listEl.appendChild(li);
+        });
+      }
+
+      function renderResults(data) {
+        document.getElementById("results").classList.remove("hidden");
+
+        const ticketsList = document.getElementById("tickets-list");
+        const faqsList = document.getElementById("faqs-list");
+        const runbooksList = document.getElementById("runbooks-list");
+
+        renderList(ticketsList, data.tickets);
+        renderList(faqsList, data.faqs);
+        renderList(runbooksList, data.runbooks);
+
+        const llmPanel = document.getElementById("llm-answer");
+        const llmText = document.getElementById("llm-answer-text");
+        if (data.llm_answer) {
+          llmPanel.classList.remove("hidden");
+          llmText.textContent = data.llm_answer;
+        } else {
+          llmPanel.classList.add("hidden");
+          llmText.textContent = "";
+        }
+      }
+
+      document
+        .getElementById("search-form")
+        .addEventListener("submit", performSearch);
+    </script>
+  </body>
+</html>
+

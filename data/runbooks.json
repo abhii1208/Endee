@@ -1,0 +1,35 @@
+[
+  {
+    "id": "RB-INC-504",
+    "title": "Investigate 504 errors on payments API",
+    "steps": [
+      "Confirm the scope of impact (regions, merchants, endpoints) using dashboards and recent tickets.",
+      "Check billing-api service metrics: CPU, memory, request latency, and error rate across regions.",
+      "Inspect database performance for the payments schema: slow queries, connection pool saturation, and locks.",
+      "Verify that all downstream dependencies (fraud checks, FX service) are healthy and not timing out.",
+      "If issue correlates with recent deploys, consider rolling back or enabling feature flag failsafes.",
+      "Communicate status in the incident channel and update the status page as needed."
+    ],
+    "product": "billing-api",
+    "severity": "P1",
+    "tags": ["incident", "504", "billing"],
+    "url": "https://runbooks.example.com/incidents/payments-504"
+  },
+  {
+    "id": "RB-AUTH-LOGIN",
+    "title": "Troubleshoot login failures after password reset",
+    "steps": [
+      "Confirm the user flow: reset password link, password change, and subsequent login attempt.",
+      "Check auth-service logs around the reported time for token validation or session creation errors.",
+      "Validate cookie configuration (domain, SameSite, Secure) across web and mobile clients.",
+      "Ensure that old sessions are invalidated and that new sessions are created after the password reset.",
+      "If a regression is suspected, check the last auth-service deploy and related feature flags.",
+      "Provide the user with a clean logout and login flow, and confirm resolution."
+    ],
+    "product": "auth-service",
+    "severity": "P1",
+    "tags": ["auth", "login"],
+    "url": "https://runbooks.example.com/auth/login-after-reset"
+  }
+]
+
